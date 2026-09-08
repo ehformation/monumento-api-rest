@@ -6,3 +6,4 @@ export const monumentRouter = Router();
 monumentRouter.get("/", monumentController.findAll);
 monumentRouter.get("/:id", monumentController.findById);
 monumentRouter.post("/", monumentController.create);
+monumentRouter.put("/:id", monumentController.update);

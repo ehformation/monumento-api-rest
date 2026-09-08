@@ -40,3 +40,27 @@ export const create: RequestHandler = async (req, res) => {
         res.status(500).json({ message: 'Erreur serveur' });
     }
 };
+
+export const update: RequestHandler = async (req, res) => {
+    const id = Number(req.params.id);
+    try {
+        const [updatedRowsCount, updatedRows] = await Monument.update(req.body, {
+            where: { id },
+            returning: true,
+        });
+
+        if (updatedRowsCount === 0) {
+            res.status(404).json({ message: `Le monument avec l'ID ${id} n'a pas été trouvé`, data: null });
+        } else {
+            res.json({ message: 'Monument mis à jour', data: updatedRows[0] });
+        }
+    } catch (error: any) {
+        if (error.name === 'SequelizeValidationError') {
+            const validationErrors = error.errors.map((err: any) => err.message);
+            res.status(400).json({ message: 'Erreur de validation', data: validationErrors });
+            return;
+        }
+        console.error(`Erreur lors de la mise à jour du monument avec l'ID ${id} :`, error);
+        res.status(500).json({ message: 'Erreur serveur' });
+    }
+};
