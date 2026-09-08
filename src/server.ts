@@ -3,6 +3,7 @@ import { nightBlocker } from "./middlewares/night-blocker.js";
 import { logger } from "./middlewares/logger.js";
 import { visitCounter } from "./middlewares/visit-counter.js";
 
+
 const app = express();
 app.use(nightBlocker);
 app.use(logger);
@@ -16,6 +17,6 @@ app.get("/visit", (req, res) => {
   res.send(`Vous êtes le visiteur n° ${req.visit}`);
 });
 
-app.listen(3008, () => {
-  console.log("API démarrée sur http://localhost:3008");
+app.listen(process.env.PORT, () => {
+  console.log(`API démarrée sur http://localhost:${process.env.PORT}`);
 });
