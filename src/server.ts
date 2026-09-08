@@ -12,6 +12,7 @@ import { initDatabase } from "./db/sequelize.js";
 await initDatabase();
 
 const app = express();
+app.use(express.json());
 app.use(nightBlocker);
 app.use(logger);
 app.use(visitCounter);
