@@ -3,6 +3,9 @@ import { nightBlocker } from "./middlewares/night-blocker.js";
 import { logger } from "./middlewares/logger.js";
 import { visitCounter } from "./middlewares/visit-counter.js";
 import { env } from "./config/env.js";
+
+import "./models/monument.model.js";
+
 import { initDatabase } from "./db/sequelize.js";
 
 await initDatabase();

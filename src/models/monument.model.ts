@@ -12,6 +12,7 @@ export class Monument extends Model<InferAttributes<Monument>, InferCreationAttr
     declare createdAt: CreationOptional<Date>;
     declare updatedAt: CreationOptional<Date>;
 }
+
 Monument.init({
     id: {
         type: DataTypes.INTEGER,
