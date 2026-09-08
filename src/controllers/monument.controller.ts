@@ -64,3 +64,19 @@ export const update: RequestHandler = async (req, res) => {
         res.status(500).json({ message: 'Erreur serveur' });
     }
 };
+
+export const remove: RequestHandler = async (req, res) => {
+    const id = Number(req.params.id);
+    try {
+        const deletedRowsCount = await Monument.destroy({ where: { id } });
+
+        if (deletedRowsCount === 0) {
+            res.status(404).json({ message: `Le monument avec l'ID ${id} n'a pas été trouvé`, data: null });
+        } else {
+            res.json({ message: 'Monument supprimé', data: null });
+        }
+    } catch (error) {
+        console.error(`Erreur lors de la suppression du monument avec l'ID ${id} :`, error);
+        res.status(500).json({ message: 'Erreur serveur' });
+    }
+};
