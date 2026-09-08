@@ -30,7 +30,12 @@ export const create: RequestHandler = async (req, res) => {
     try {
         const newMonument = await Monument.create(req.body);
         res.status(201).json({ message: 'Monument créé', data: newMonument });
-    } catch (error) {
+    } catch (error: any) {
+        if (error.name === 'SequelizeValidationError') {
+            const validationErrors = error.errors.map((err: any) => err.message);
+            res.status(400).json({ message: 'Erreur de validation', data: validationErrors });
+            return;
+        }   
         console.error('Erreur lors de la création du monument :', error);
         res.status(500).json({ message: 'Erreur serveur' });
     }
