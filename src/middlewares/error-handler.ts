@@ -1,32 +1,31 @@
 import type { ErrorRequestHandler } from "express";
 import { ValidationError, UniqueConstraintError } from "sequelize";
 import { env } from "../config/env.js";
-import { HttpError } from "../errors/http-error.js";
+import { HttpError, badRequestError, internalServerError } from "../errors/http-error.js";
 
-export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
-  console.error("Erreur capturée par le middleware :", err);
-
-  if(err instanceof HttpError) {
-    res.status(err.status).json({ message: err.message, data: err.data });
-    return;
-  }
-
-  if (err.type === "entity.parse.failed") {
-    res.status(400).json({ message: "Le corps de la requête n'est pas un JSON valide.", data: null });
-    return;
-  }
+function toHttpError(err: unknown): HttpError {
+  if (err instanceof HttpError) return err;
 
   if (err instanceof ValidationError || err instanceof UniqueConstraintError) {
-    const validationErrors = err.errors.map((error) => error.message);
-    return res.status(400).json({
-        message: "Erreur de validation",
-        data: validationErrors,
-    });
+    return badRequestError("Erreur de validation", err.errors.map((e) => e.message));
   }
 
-  res.status(500).json({
-    message: "Une erreur serveur est survenue. Veuillez réessayer plus tard.",
-    data: env.NODE_ENV === "development" ? err.message : null,
-  });
+  if (typeof err === "object" && err !== null && (err as { type?: string }).type === "entity.parse.failed") {
+    return badRequestError("Le corps de la requête n'est pas un JSON valide.");
+  }
+
+  return internalServerError(
+    "Une erreur serveur est survenue. Veuillez réessayer plus tard.",
+    env.NODE_ENV === "development" && err instanceof Error ? err.message : null,
+  );
 }
 
+export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+  const httpError = toHttpError(err);
+
+  if (httpError.status >= 500) {
+    console.error("Erreur serveur :", err);
+  }
+
+  res.status(httpError.status).json({ message: httpError.message, data: httpError.data });
+};
