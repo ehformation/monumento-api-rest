@@ -1,5 +1,6 @@
 import type { RequestHandler } from 'express';
 import { Monument } from '../models/monument.model.js';
+import { notFoundError } from '../errors/http-error.js';
 
 export const findAll: RequestHandler = async (req, res) => {
     const monuments = await Monument.findAll();
@@ -9,11 +10,8 @@ export const findAll: RequestHandler = async (req, res) => {
 export const findById: RequestHandler = async (req, res) => {
     const id = Number(req.params.id);
     const monument = await Monument.findByPk(id);
-    if (monument) {
-        res.json({ message: 'Monument trouvé', data: monument });
-    } else {
-        res.status(404).json({ message: `Le monument avec l'ID ${id} n'a pas été trouvé`, data: null });
-    }
+    if (!monument) throw notFoundError(`Le monument avec l'ID ${id} n'a pas été trouvé`);
+    res.json({ message: 'Monument trouvé', data: monument });
 };
 
 export const create: RequestHandler = async (req, res) => {
@@ -23,25 +21,18 @@ export const create: RequestHandler = async (req, res) => {
 
 export const update: RequestHandler = async (req, res) => {
     const id = Number(req.params.id);
-    const [updatedRowsCount, updatedRows] = await Monument.update(req.body, {
-        where: { id },
-        returning: true,
+    const updatedRows = await Monument.update(req.body, {
+        where: { id }
     });
 
-    if (updatedRowsCount === 0) {
-        res.status(404).json({ message: `Le monument avec l'ID ${id} n'a pas été trouvé`, data: null });
-    } else {
-        res.json({ message: 'Monument mis à jour', data: updatedRows[0] });
-    }
+    if (!updatedRows[0]) throw notFoundError(`Le monument avec l'ID ${id} n'a pas été trouvé`);
+    res.json({ message: 'Monument mis à jour', data: updatedRows[0] });
 };
 
 export const remove: RequestHandler = async (req, res) => {
     const id = Number(req.params.id);
     const deletedRowsCount = await Monument.destroy({ where: { id } });
 
-    if (deletedRowsCount === 0) {
-        res.status(404).json({ message: `Le monument avec l'ID ${id} n'a pas été trouvé`, data: null });
-    } else {
-        res.json({ message: 'Monument supprimé', data: null });
-    }
+    if (deletedRowsCount === 0) throw notFoundError(`Le monument avec l'ID ${id} n'a pas été trouvé`);
+    res.json({ message: 'Monument supprimé', data: null });
 };
