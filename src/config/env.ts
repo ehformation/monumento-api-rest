@@ -26,4 +26,6 @@ export const env = {
   DB_USER: required("DB_USER"),
   DB_PASSWORD: required("DB_PASSWORD"),
   NODE_ENV: process.env.NODE_ENV ?? "development",
+  JWT_SECRET: required("JWT_SECRET"),
+  ACCESS_TOKEN_TTL: optionalNumber("ACCESS_TOKEN_TTL", 1800)
 };

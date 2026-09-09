@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import * as authService from '../services/auth.service.js';
 import { badRequestError } from '../errors/http-error.js';
+import { signAccessToken } from "../services/token.service.js";
 
 function validateCredentials(body: unknown): authService.Credentials {
   if (!body || typeof body !== "object") {
@@ -29,5 +30,6 @@ export const register: RequestHandler = async (req, res) => {
 export const login: RequestHandler = async (req, res) => {
   const credentials = validateCredentials(req.body);
   const user = await authService.login(credentials);
-  res.status(200).json({ message: "Connexion réussie.", data: user });
+  const accessToken = signAccessToken({ userId: user.id, username: user.username });
+  res.json({ message: "Authentification réussie.", data: { userId: user.id, accessToken } });   
 }

@@ -12,6 +12,7 @@ import "./models/user.model.js";
 
 import { initDatabase } from "./db/sequelize.js";
 import { errorHandler } from "./middlewares/error-handler.js";
+import { requireAuth } from "./middlewares/require-auth.js";
 
 // Initialize the database
 await initDatabase();
@@ -30,8 +31,8 @@ app.get("/", (req, res) => {
   res.send("Bienvenue sur l'API Monumento !");
 });
 // Routes for monuments
-app.use("/monuments", monumentRouter);
 app.use("/auth", authRouter);
+app.use("/monuments", requireAuth, monumentRouter);
 
 app.get("/visit", (req, res) => {
   res.send(`Vous êtes le visiteur n° ${req.visit}`);

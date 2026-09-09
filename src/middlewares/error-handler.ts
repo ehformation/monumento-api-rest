@@ -2,6 +2,9 @@ import type { ErrorRequestHandler } from "express";
 import { ValidationError, UniqueConstraintError } from "sequelize";
 import { env } from "../config/env.js";
 import { HttpError, badRequestError, internalServerError, unauthorizedError } from "../errors/http-error.js";
+import jwt from "jsonwebtoken";
+const { TokenExpiredError, JsonWebTokenError } = jwt;
+
 
 function toHttpError(err: unknown): HttpError {
   if (err instanceof HttpError) return err;
@@ -17,6 +20,10 @@ function toHttpError(err: unknown): HttpError {
   if (typeof err === "object" && err !== null && (err as { name?: string }).name === "UnauthorizedError") {
     return unauthorizedError("Vous n'êtes pas autorisé à accéder à cette ressource.");
   }
+
+  if (err instanceof TokenExpiredError) return unauthorizedError("Le token a expiré.");
+
+  if (err instanceof JsonWebTokenError) return unauthorizedError("Le token est invalide.");
 
   return internalServerError(
     "Une erreur serveur est survenue. Veuillez réessayer plus tard.",
