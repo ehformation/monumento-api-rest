@@ -4,7 +4,11 @@ import { logger } from "./middlewares/logger.js";
 import { visitCounter } from "./middlewares/visit-counter.js";
 import { env } from "./config/env.js";
 import { monumentRouter } from "./routes/monument.routes.js";
+
+// Import models to ensure they are registered with Sequelize
 import "./models/monument.model.js";
+import "./models/user.model.js";
+
 import { initDatabase } from "./db/sequelize.js";
 import { errorHandler } from "./middlewares/error-handler.js";
 

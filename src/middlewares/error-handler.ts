@@ -1,7 +1,7 @@
 import type { ErrorRequestHandler } from "express";
 import { ValidationError, UniqueConstraintError } from "sequelize";
 import { env } from "../config/env.js";
-import { HttpError, badRequestError, internalServerError } from "../errors/http-error.js";
+import { HttpError, badRequestError, internalServerError, unauthorizedError } from "../errors/http-error.js";
 
 function toHttpError(err: unknown): HttpError {
   if (err instanceof HttpError) return err;
@@ -12,6 +12,10 @@ function toHttpError(err: unknown): HttpError {
 
   if (typeof err === "object" && err !== null && (err as { type?: string }).type === "entity.parse.failed") {
     return badRequestError("Le corps de la requête n'est pas un JSON valide.");
+  }
+
+  if (typeof err === "object" && err !== null && (err as { name?: string }).name === "UnauthorizedError") {
+    return unauthorizedError("Vous n'êtes pas autorisé à accéder à cette ressource.");
   }
 
   return internalServerError(
