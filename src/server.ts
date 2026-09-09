@@ -31,6 +31,7 @@ app.get("/visit", (req, res) => {
   res.send(`Vous êtes le visiteur n° ${req.visit}`);
 });
 
+// Error Middlewares 
 app.use(errorHandler);
 
 app.listen(env.PORT, () => {
