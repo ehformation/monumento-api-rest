@@ -4,6 +4,7 @@ import { logger } from "./middlewares/logger.js";
 import { visitCounter } from "./middlewares/visit-counter.js";
 import { env } from "./config/env.js";
 import { monumentRouter } from "./routes/monument.routes.js";
+import { authRouter } from "./routes/auth.routes.js";
 
 // Import models to ensure they are registered with Sequelize
 import "./models/monument.model.js";
@@ -30,6 +31,7 @@ app.get("/", (req, res) => {
 });
 // Routes for monuments
 app.use("/monuments", monumentRouter);
+app.use("/auth", authRouter);
 
 app.get("/visit", (req, res) => {
   res.send(`Vous êtes le visiteur n° ${req.visit}`);
