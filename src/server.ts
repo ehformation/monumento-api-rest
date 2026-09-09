@@ -6,6 +6,7 @@ import { env } from "./config/env.js";
 import { monumentRouter } from "./routes/monument.routes.js";
 import "./models/monument.model.js";
 import { initDatabase } from "./db/sequelize.js";
+import { errorHandler } from "./middlewares/error-handler.js";
 
 // Initialize the database
 await initDatabase();
@@ -29,6 +30,8 @@ app.use("/monuments", monumentRouter);
 app.get("/visit", (req, res) => {
   res.send(`Vous êtes le visiteur n° ${req.visit}`);
 });
+
+app.use(errorHandler);
 
 app.listen(env.PORT, () => {
   console.log(`API démarrée sur http://localhost:${env.PORT}`);
