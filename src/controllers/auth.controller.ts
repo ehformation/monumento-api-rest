@@ -29,7 +29,13 @@ export const register: RequestHandler = async (req, res) => {
 
 export const login: RequestHandler = async (req, res) => {
   const credentials = validateCredentials(req.body);
-  const user = await authService.login(credentials);
-  const accessToken = signAccessToken({ userId: user.id, username: user.username });
-  res.json({ message: "Authentification réussie.", data: { userId: user.id, accessToken } });   
+  const { user, tokens } = await authService.login(credentials);
+  res.json({ message: "Authentification réussie.", data: { userId: user.id, ...tokens } });
 }
+
+export const refresh: RequestHandler = async (req, res) => {
+  const { refreshToken } = (req.body ?? {}) as Record<string, unknown>;
+  if (typeof refreshToken !== "string") throw badRequestError("refreshToken est requis.");
+  const accessToken = await authService.refresh(refreshToken);
+  res.json({ message: "Nouveau token d'accès généré.", data: { accessToken } });
+};
