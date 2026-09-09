@@ -1,31 +1,50 @@
 import type { RequestHandler } from 'express';
 import { Monument } from '../models/monument.model.js';
 import { notFoundError, badRequestError } from '../errors/http-error.js';
-import { Op } from 'sequelize';
+import { Op, WhereOptions } from 'sequelize';
 
 const SORTABLE = ["title", "buildYear", "createdAt"] as const;
 type Sortable = (typeof SORTABLE)[number];
 
 
 export const findAll: RequestHandler = async (req, res) => {
-    const title = typeof req.query.title === 'string' ? req.query.title : undefined;
-    const limit = typeof req.query.limit === 'string' ? parseInt(req.query.limit) : undefined;
-    const orderBy = req.query.orderBy;
+    const { title, country, afterDate, beforeDate, orderBy, order, limit } = req.query;
+    const where: WhereOptions<Monument> = {};
 
-    if(limit !== undefined && (!Number.isInteger(limit) || limit <= 1 || limit > 100)) {
-        throw badRequestError("Le paramètre 'limit' est invalide.");
+    if(typeof title === 'string' && title.trim().length >= 2) {
+        where.title = { [Op.like]: `%${title.trim()}%` };
     }
 
-    if (orderBy !== undefined && !SORTABLE.includes(orderBy as Sortable)) {
-        throw badRequestError(`orderBy doit être l'un de : ${SORTABLE.join(", ")}.`);
+    if(typeof country === 'string') {
+        where.country = { [Op.like]: `%${country.trim()}%` };
     }
+
+    const yearRange: Record<symbol, number> = {};
+    if(typeof afterDate === 'string') {
+        const n = Number(afterDate);
+        if(!Number.isInteger(n)) throw badRequestError("afterDate doit être un entier");
+        yearRange[Op.gte] = n;
+    }
+
+    if(typeof beforeDate === 'string') {
+        const n = Number(beforeDate);
+        if(!Number.isInteger(n)) throw badRequestError("beforeDate doit être un entier");
+        yearRange[Op.lte] = n;
+    }
+
+    if(Object.getOwnPropertySymbols(yearRange).length > 0) where.buildYear = yearRange;
+
+    if(orderBy !== undefined && !SORTABLE.includes(orderBy as Sortable)) {
+        throw badRequestError(`orderBy doit être l'une des valeurs suivantes : ${SORTABLE.join(", ")}`);
+    }
+
+    const direction = order === 'desc' ? 'DESC' : 'ASC';
 
     const monuments = await Monument.findAll({
-        where: title ? { title: { [Op.like]: `%${title}%` } } : undefined,
-        limit,
-        order: orderBy ? [[orderBy as Sortable, 'ASC']] : undefined,
+        where,
+        order: [[(orderBy as Sortable) ?? 'title', direction]],
+        limit: typeof limit === 'string' ? Number(limit) : undefined
     });
-    
     res.json({ message: 'Liste des monuments', data: monuments });
 };
 
