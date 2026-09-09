@@ -2,14 +2,14 @@ import type { ErrorRequestHandler } from "express";
 import { ValidationError, UniqueConstraintError } from "sequelize";
 import { env } from "../config/env.js";
 
-export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error("Erreur capturée par le middleware :", err);
 
   if (err.type === "entity.parse.failed") {
     res.status(400).json({ message: "Le corps de la requête n'est pas un JSON valide.", data: null });
     return;
   }
-  
+
   if (err instanceof ValidationError || err instanceof UniqueConstraintError) {
     const validationErrors = err.errors.map((error) => error.message);
     return res.status(400).json({
