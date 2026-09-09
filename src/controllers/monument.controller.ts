@@ -1,9 +1,31 @@
 import type { RequestHandler } from 'express';
 import { Monument } from '../models/monument.model.js';
-import { notFoundError } from '../errors/http-error.js';
+import { notFoundError, badRequestError } from '../errors/http-error.js';
+import { Op } from 'sequelize';
+
+const SORTABLE = ["title", "buildYear", "createdAt"] as const;
+type Sortable = (typeof SORTABLE)[number];
+
 
 export const findAll: RequestHandler = async (req, res) => {
-    const monuments = await Monument.findAll();
+    const title = typeof req.query.title === 'string' ? req.query.title : undefined;
+    const limit = typeof req.query.limit === 'string' ? parseInt(req.query.limit) : undefined;
+    const orderBy = req.query.orderBy;
+
+    if(limit !== undefined && (!Number.isInteger(limit) || limit <= 1 || limit > 100)) {
+        throw badRequestError("Le paramètre 'limit' est invalide.");
+    }
+
+    if (orderBy !== undefined && !SORTABLE.includes(orderBy as Sortable)) {
+        throw badRequestError(`orderBy doit être l'un de : ${SORTABLE.join(", ")}.`);
+    }
+
+    const monuments = await Monument.findAll({
+        where: title ? { title: { [Op.like]: `%${title}%` } } : undefined,
+        limit,
+        order: orderBy ? [[orderBy as Sortable, 'ASC']] : undefined,
+    });
+    
     res.json({ message: 'Liste des monuments', data: monuments });
 };
 
