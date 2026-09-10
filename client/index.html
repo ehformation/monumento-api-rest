@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>Test Socket.io</h1>
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <script>
+    const socket = io("http://localhost:3008");
+
+    socket.on("connect", () => {
+      console.log("Connecté au serveur, mon id :", socket.id);
+    });
+  </script>
+</body>
+</html>
