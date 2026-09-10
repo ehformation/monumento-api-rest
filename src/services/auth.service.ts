@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { User } from '../models/user.model.js';
-import { badRequestError, unauthorizedError } from '../errors/http-error.js';
+import { badRequestError, unauthorizedError, notFoundError } from '../errors/http-error.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from './token.service.js';
 import jwt from 'jsonwebtoken';
 import { Op } from "sequelize";
@@ -54,4 +54,12 @@ export async function refresh(refreshToken: string): Promise<string> {
   if (!user) throw unauthorizedError("Token de rafraîchissement invalide ou révoqué.");
 
   return signAccessToken({ userId: user.id, username: user.username });
+}
+
+export async function logout(userId: number): Promise<void> {
+  const [updated] = await User.update(
+    { refreshToken: null, refreshTokenExpiry: null },
+    { where: { id: userId } },
+  );
+  if (updated === 0) throw notFoundError("Utilisateur introuvable.");
 }

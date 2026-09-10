@@ -1,5 +1,5 @@
-import type { RequestHandler } from "express";
-import { verifyAccessToken } from "../services/token.service.js";
+import type { RequestHandler, Request } from "express";
+import { TokenPayload, verifyAccessToken } from "../services/token.service.js";
 import { unauthorizedError } from "../errors/http-error.js";
 
 export const requireAuth: RequestHandler = (req, _res, next) => {
@@ -10,3 +10,8 @@ export const requireAuth: RequestHandler = (req, _res, next) => {
   req.user = verifyAccessToken(token);
   next();
 };
+
+export function currentUser(req: Request): TokenPayload {
+  if (!req.user) throw unauthorizedError("Utilisateur non authentifié.");
+  return req.user;
+}
