@@ -8,6 +8,7 @@ import { monumentRouter } from "./routes/monument.routes.js";
 import { authRouter } from "./routes/auth.routes.js";
 import cors from "cors";
 import helmet from "helmet";
+import { mountSwagger } from "./docs/swagger.js";
 
 export function createApp() {
   const app = express();
@@ -23,6 +24,9 @@ export function createApp() {
   app.use(logger);
   app.use(visitCounter);
 
+  // Swagger
+  mountSwagger(app);
+  
   // Routes
   app.get("/", (_req, res) => {
     res.send("Bienvenue sur l'API Monumento !");
