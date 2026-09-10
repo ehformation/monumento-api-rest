@@ -2,13 +2,37 @@
 <html>
 <body>
   <h1>Test Socket.io</h1>
+  <input id="msg" placeholder="Message">
+  <div id="messages"></div>
+  <button id="send">Envoyer</button>
   <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
   <script>
-    const socket = io("http://localhost:3008");
+    const socket = io("http://localhost:3008", { auth: { token: "" } }    );
 
     socket.on("connect", () => {
       console.log("Connecté au serveur, mon id :", socket.id);
     });
+
+    socket.on("welcome", (data) => {
+      console.log("Message reçu :", data.message, " date:", data.date);
+    });
+
+    socket.on("chat:message", (data) => {
+      console.log("Message reçu :", data.text, " date:", data.date);
+
+        const messagesDiv = document.getElementById("messages");
+        messagesDiv.innerHTML += `<p><strong>${data.from}</strong> (${data.date}): ${data.text}</p>`;
+    });
+
+    document.getElementById("send").onclick = () => {
+        socket.emit("chat:send", { text: document.getElementById("msg").value });
+    };
+
+    document.getElementById("msg").addEventListener("keypress", (event) => {
+        const text = "Est en train d'écrire...";
+        socket.emit("typing", { text });
+    });
+
   </script>
 </body>
 </html>
