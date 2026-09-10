@@ -1,6 +1,6 @@
 import type http from "node:http";
 import { Server } from "socket.io";
-import type { ClientToServerEvents, ServerToClientEvents, SocketData } from "./events.js";
+import type { ChatMessage, ClientToServerEvents, ServerToClientEvents, SocketData } from "./events.js";
 import { verifyAccessToken, type TokenPayload } from "../services/token.service.js";
 
 export function setupSocketServer(server: http.Server) {
@@ -23,24 +23,36 @@ export function setupSocketServer(server: http.Server) {
     }
   });
 
+  async function broadcastPresence() {
+    const sockets = await io.fetchSockets();
+    const guides = sockets.filter((s) => s.data.user.role === "guide").length;
+    io.emit("presence:update", { visitors: sockets.length - guides, guides });
+  }
+
   io.on("connection", (socket) => {
-    const { username } = socket.data.user;
-    console.log(`${username} connecté (${socket.id})`);
-
-
-    socket.emit("welcome", { message: "Bienvenue sur le chat Monumento", date: new Date().toISOString() });
+    const { username, role } = socket.data.user;
+    console.log(`${username} (${role}) connecté`);
+    broadcastPresence();
 
     socket.on("chat:send", (payload) => {
-      io.emit("chat:message", { from: username, text: payload.text, date: new Date().toISOString() });
+      const text = typeof payload?.text === "string" ? payload.text.trim() : "";
+      if (text.length === 0 || text.length > 500) {
+        return socket.emit("chat:error", "Le message doit contenir entre 1 et 500 caractères.");
+      }
+      const message: ChatMessage = { 
+        from: username, 
+        role, 
+        text, 
+        date: new Date().toISOString() 
+      };
+      io.emit("chat:message", message);
     });
 
-    socket.on("disconnect", (reason) => {
-      console.log(`Client déconnecté : ${username} (${socket.id}) (${reason})`);
+    socket.on("disconnect", () => {
+      console.log(`${username} déconnecté`);
+      broadcastPresence();
     });
 
-    socket.on("connect_error", (err) => {
-        console.error("Connexion refusée :", err.message);
-    });
   });
 
   return io;

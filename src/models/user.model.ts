@@ -11,6 +11,7 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
   declare id: CreationOptional<number>;
   declare username: string;
   declare password: string;
+  declare role: CreationOptional<"visitor" | "guide">;
   declare refreshToken: CreationOptional<string | null>;
   declare refreshTokenExpiry: CreationOptional<Date | null>;
   declare createdAt: CreationOptional<Date>;
@@ -36,6 +37,11 @@ User.init(
             notEmpty: { msg: "Le mot de passe est requis." },
             len: { args: [6, 100], msg: "Le mot de passe doit contenir entre 6 et 100 caractères." },
         },
+    },
+    role: { 
+      type: DataTypes.ENUM("visitor", "guide"), 
+      allowNull: false, 
+      defaultValue: "visitor" 
     },
     refreshToken: { type: DataTypes.TEXT, allowNull: true },
     refreshTokenExpiry: { type: DataTypes.DATE, allowNull: true },

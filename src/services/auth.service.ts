@@ -29,7 +29,7 @@ export async function login({ username, password }: Credentials): Promise<{ user
   const isValid = user !== null && (await bcrypt.compare(password, user.password));
   if (!isValid) throw unauthorizedError("Identifiants incorrects.");
 
-  const payload = { userId: user.id, username: user.username };
+  const payload = { userId: user.id, username: user.username, role: user.role };
   const accessToken = signAccessToken(payload);
   const refreshToken = signRefreshToken(payload);
 
@@ -53,7 +53,7 @@ export async function refresh(refreshToken: string): Promise<string> {
   });
   if (!user) throw unauthorizedError("Token de rafraîchissement invalide ou révoqué.");
 
-  return signAccessToken({ userId: user.id, username: user.username });
+  return signAccessToken({ userId: user.id, username: user.username, role: user.role });
 }
 
 export async function logout(userId: number): Promise<void> {
